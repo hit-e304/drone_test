@@ -203,6 +203,7 @@ int main(int argc, char **argv)
 				rc_d_thrust = float(current_RC_in.channels.at(2)-1513) / 840 * 5;
 				printf("rc_d_yaw : %f \n",rc_d_yaw * 180 / 3.14);
 
+
 				roll = 0;
 				pitch = 0;
 				px4_xyzw.x = current_pose.pose.orientation.x;

@@ -311,6 +311,7 @@ void on_trackbar_line( int, void* )
 {
     red_offset_line = alpha_slider_line;
 }    
+
 int main(int argc, char** argv)
 {
 ros::init(argc, argv, "image_converter");
