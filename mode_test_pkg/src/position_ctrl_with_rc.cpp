@@ -234,6 +234,33 @@ int main(int argc, char **argv)
 				printf("error_y: %f , error_z: %f \n",(-kp * delta_pixels[0]) + rc_d_roll , (-kp * delta_pixels[1])+ rc_d_thrust);
 			}
 			else{
+				rc_d_roll = float(current_RC_in.channels.at(0)-1513) / (-840) * 5;  //invert with -840
+				rc_d_pitch =  float(current_RC_in.channels.at(1)-1513) / (-840) * 5;
+				rc_d_yaw =  float(current_RC_in.channels.at(3)-1514) / (-840) * 5;
+				rc_d_thrust = float(current_RC_in.channels.at(2)-1513) / 840 * 5;
+				// printf("rc_d_yaw : %f \n",rc_d_yaw * 180 / 3.14);
+
+				roll = 0;
+				pitch = 0;
+				px4_xyzw.x = current_pose.pose.orientation.x;
+				px4_xyzw.y = current_pose.pose.orientation.y;
+				px4_xyzw.z = current_pose.pose.orientation.z;
+				px4_xyzw.w = current_pose.pose.orientation.w;
+				// printf("x_cur: %f \n",px4_xyzw.x);
+				// printf("y_cur: %f \n",px4_xyzw.y);
+				// printf("z_cur: %f \n",px4_xyzw.z);
+				// printf("w_cur: %f \n",px4_xyzw.w);
+				yaw = Quaternion2Euler(px4_xyzw).z + rc_d_yaw;
+				printf("tg_yaw : %f \n",yaw * 180 / 3.14159265358979);	
+				q.setRPY(roll, pitch, yaw);
+
+				pose.pose.position.x = current_pose.pose.position.x + rc_d_pitch;
+				pose.pose.position.y = pose.pose.position.y + rc_d_roll ;
+				pose.pose.position.z = pose.pose.position.z + rc_d_thrust ;
+				pose.pose.orientation.x = q[0];
+				pose.pose.orientation.y = q[1];
+				pose.pose.orientation.z = q[2];
+				pose.pose.orientation.w = q[3];
 				ROS_INFO("box is out of sight!");  // if the box is in camera sight
 			}
 			printf("tg_yaw_prepub : %f \n",yaw * 180 / 3.14);

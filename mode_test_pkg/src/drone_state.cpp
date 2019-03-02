@@ -80,8 +80,8 @@ int main(int argc, char **argv)
         ROS_INFO("The Drone's y and z error position is :");
         std::cout << "error y : " << error_y << std::endl;
         std::cout << "error z : " << error_z << std::endl;
-        ROS_INFO("The Drone's RCin is :");
-        std::cout << current_RC_in << std::endl;
+        // ROS_INFO("The Drone's RCin is :");
+        // std::cout << current_RC_in << std::endl;
         ROS_INFO("The camera_data is :");
         std::cout << camera_data << std::endl;
         std::cout << "The camera y_ctrl error :" << -kp * camera_data.x_pos << std::endl;
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
 
         ros::spinOnce();
         rate.sleep();
-        
+
     }
     
     
