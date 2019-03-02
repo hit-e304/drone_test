@@ -33,8 +33,8 @@ tfScalar yaw,pitch,roll; //RC oreintation
 tf::Quaternion q;
 
 // picture size is 480 * 640
-#define picture_centerX 320;
-#define picture_centerY 240;
+#define picture_centerX 0;
+#define picture_centerY 0;
 
 // init status as init_mdoe
 int status = init_mode;
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
             ("mavros/state", 1, state_cb);
     ros::Publisher local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>
             ("mavros/setpoint_position/local", 1);
-    ros::Publisher attitude_pub = nh.advertise<mavros_msgs::AttitudeTarget>("mavros/setpoint_raw/attitude",10);
+    // ros::Publisher attitude_pub = nh.advertise<mavros_msgs::AttitudeTarget>("mavros/setpoint_raw/attitude",10);
 
     ros::ServiceClient arming_client = nh.serviceClient<mavros_msgs::CommandBool>
             ("mavros/cmd/arming");
@@ -228,8 +228,9 @@ int main(int argc, char **argv)
 				delta_pixels[0] = camera_data.x_pos - picture_centerX;
 				delta_pixels[1] = camera_data.y_pos - picture_centerY;
 				pose.pose.position.y = current_pose.pose.position.y +  (-kp * delta_pixels[0]) + rc_d_roll;
-				pose.pose.position.z = current_pose.pose.position.z +  (-kp * delta_pixels[1])+ rc_d_thrust;
+				pose.pose.position.z = current_pose.pose.position.z +  (kp * delta_pixels[1])+ rc_d_thrust;
 				printf("out_flag:  %d \n",camera_data.out_flag);
+				printf("error_y: %f , error_z: %f \n",(-kp * delta_pixels[0]) + rc_d_roll , (-kp * delta_pixels[1])+ rc_d_thrust);
 			}
 			else{
 				ROS_INFO("box is out of sight!");  // if the box is in camera sight
@@ -241,8 +242,6 @@ int main(int argc, char **argv)
 			;
 		}
 		
-
-
 		ros::spinOnce();
 		rate.sleep();
 	}
