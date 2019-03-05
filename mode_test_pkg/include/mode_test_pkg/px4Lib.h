@@ -86,9 +86,9 @@ private:
     void local_pos_subCallback(const geometry_msgs::PoseStamped::ConstPtr& curr_p);
     void gps_raw_subCallback(const sensor_msgs::NavSatFix::ConstPtr& gps_data);
     void cam_subCallback(const opencvtest::img_pro_info::ConstPtr& cam_data);
-    void paramsInit(ros::NodeHandle nodeHandle);
 
     void parseArguments(const ros::NodeHandle& nodeHandle);
+    geometry_msgs::Vector3 Quaternion2Euler(const geometry_msgs::Quaternion msg);
 
 private:
     ros::NodeHandle nh; // it is a node
@@ -100,15 +100,6 @@ private:
 
 
 public:
-
-    geometry_msgs::Vector3 Quaternion2Euler(const geometry_msgs::Quaternion msg);
-    void main_loop(ros::Rate ros_node_rate); //override
-    void pixhawkInit(ros::Rate ros_node_rate); //override
-    void gotoHoverPose(ros::Rate ros_node_rate); //override
-    void doMission(ros::Rate ros_node_rate); //override
-    int getStatus();
-
-
     bool init(ros::NodeHandle& nodeHandle);
     bool arm();
     void spin();
