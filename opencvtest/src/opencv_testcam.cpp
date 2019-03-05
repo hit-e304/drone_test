@@ -130,7 +130,7 @@ public:
         // }
 
         //载入图片
-        //cv::Mat img = imread("momo3.jpeg",1);
+        //cv::Mat img = imread("V_picture.png",1);
         //变量定义
         cv::Mat img_gauss,img_gray,img_hsv,img_binary,img_red,img_red_gauss,img_red_median;
         //白色的点，用于赋值
@@ -140,25 +140,27 @@ public:
         // white_point.val[2] = 255;
         cv::Mat img = cv_ptr->image;
         img_red = Mat::zeros(img.size(),CV_8UC1);
-        int red_hsv = 120;
+        int h_hsv = 120;
+        int s_hsv = 130;
+        int h_hsv_offset = 15;
 	    cv::GaussianBlur(img,img_gauss,cv::Size(3,3),0);
         cvtColor(img_gauss,img_hsv,CV_RGB2HSV);
-        cvtColor(img_hsv,img_gray,CV_RGB2GRAY);
+        //cvtColor(img_hsv,img_gray,CV_RGB2GRAY);
         //红色区域筛选
         for (int i = 0; i < img_hsv.rows; i++)
         {
             for (int j = 0; j < img_hsv.cols; j++)
 		    {
                 Vec3i hsv_point = img_hsv.at<Vec3b>(i,j);
-                if ((hsv_point.val[0]>red_hsv - 15)&&(hsv_point.val[0]<red_hsv + 15))
+                if ((hsv_point.val[0] > h_hsv - h_hsv_offset)&&(hsv_point.val[0] < h_hsv + h_hsv_offset) && (hsv_point.val[1] > s_hsv))
                 {
                     img_red.at<uchar>(i,j) = 255;
                 }
             }           
         }
         //二值化处理
-        Mat canny_img;
-	    cv::Canny(img_gray,canny_img,120,250);
+        // Mat canny_img;
+	    // cv::Canny(img_gray,canny_img,120,250);
         //存储轮廓
         vector<vector<Point> > contours;
 	    vector<Vec4i> hierarchy;
@@ -167,8 +169,8 @@ public:
         //查找轮廓
         findContours(img_red_median,contours,hierarchy,RETR_TREE,CHAIN_APPROX_SIMPLE,Point());
 	    Mat imageContours = Mat::zeros(img.size(),CV_8UC1);
-        Mat poly_image = Mat::zeros(img.size(),CV_8UC1); //凸包图像
-	    Mat Contours = Mat::zeros(img.size(),CV_8UC1);  //绘制
+        //Mat poly_image = Mat::zeros(img.size(),CV_8UC1); //凸包图像
+	    //Mat Contours = Mat::zeros(img.size(),CV_8UC1);  //绘制
         //轮廓排序
         std::sort(contours.begin(),contours.end(),ContoursSortFun); 
         // //定义逼近后的存储容器
@@ -194,7 +196,7 @@ public:
         {
             //出界标志位置0 
             out_flag = 0; 
-            if(contours_ploy[i].size() == 4  && cv::contourArea(contours_ploy[i]) > 1000 && contours[i].size() > 30)
+            if(contours_ploy[i].size() == 4  && cv::contourArea(contours_ploy[i]) > 500 && contours[i].size() > 20)
             //if(contours_ploy[i].size() == 4)
             {
                 for(int j = 0;j < contours_ploy[i].size();j++)
@@ -227,14 +229,14 @@ public:
                 if(out_flag == 0 && (theta < 20 || theta > 160))
                 {
                     //drawContours(imageContours,contours_ploy,i,Scalar(255),1,8,hierarchy);
-                    drawContours(img,contours_ploy,i,Scalar(0,255,0),3,8,hierarchy);
+                    //drawContours(img,contours_ploy,i,Scalar(0,255,0),3,8,hierarchy);
                     //cv::circle(imageContours, P_center, 5, Scalar(255),2);
                     cv::circle(img, P_center, 5, Scalar(0,255,0),2);
                 }
                 if(out_flag == 1 && (theta < 20 || theta > 160))
                 {
                     //drawContours(imageContours,contours_ploy,i,Scalar(255),1,8,hierarchy);
-                    drawContours(img,contours_ploy,i,Scalar(255,0,0),3,8,hierarchy);
+                    //drawContours(img,contours_ploy,i,Scalar(255,0,0),3,8,hierarchy);
                     //cv::circle(imageContours, P_center, 5, Scalar(255),2);
                     cv::circle(img, P_center, 5, Scalar(255,0,0),2);
                 }
@@ -283,7 +285,7 @@ public:
         //imshow("gray Image",img_gray);
         //imshow("hsv Image",img_hsv);
         //imshow("red Image",img_red);//hsv提取到的红色区域
-        imshow("red Image_gauss",img_red_median);//高斯滤波后的红色区域
+        //imshow("red Image_gauss",img_red_median);//高斯滤波后的红色区域
         //imshow("binary Image",img_binary);
         //imshow("poly Image",poly_image); //凸包的图像
         //imshow("draw_rotateRect", draw_rotateRect); 
@@ -310,7 +312,8 @@ void on_trackbar_sub( int, void* )
 void on_trackbar_line( int, void* )
 {
     red_offset_line = alpha_slider_line;
-}    
+}
+
 
 int main(int argc, char** argv)
 {
@@ -320,7 +323,7 @@ int alpha_slider_line_max = 100;
 int alpha_slider_max = 50;
 // namedWindow("Linear Offset_add", 1);
 // namedWindow("Linear Offset_sub", 1);
-//namedWindow("Linear Offset_line", 1);
+// namedWindow("Linear Offset_line", 1);
 // createTrackbar( "Trackbar", "Linear Offset_add", &alpha_slider_add, alpha_slider_max, on_trackbar_add );
 // createTrackbar( "Trackbar", "Linear Offset_sub", &alpha_slider_sub, alpha_slider_max, on_trackbar_sub );
 //createTrackbar( "Trackbar", "Linear Offset_line", &alpha_slider_line, alpha_slider_line_max, on_trackbar_line );

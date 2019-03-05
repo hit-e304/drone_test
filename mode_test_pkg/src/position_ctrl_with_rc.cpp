@@ -9,11 +9,12 @@
 
 int main(int argc, char **argv)
 {
+    // std::cout << "aaaaaaaa" << std::endl;
 	ros::init(argc, argv, "offb_node");
 	ros::NodeHandle nh("~"); // it is a node
-	
+	// std::cout << "bbbbbbbbb" << std::endl;
 	px4Core::px4_Core px4_contrller;
-
+    // std::cout << "cccccccccc" << std::endl;
 	if(!px4_contrller.init(nh))
     {
         ROS_ERROR("Could not initialize PX4Controller node!");

@@ -85,13 +85,13 @@ void px4_Core::parseArguments(const ros::NodeHandle& nodeHandle){
 bool px4_Core::init(ros::NodeHandle& nodeHandle){
     parseArguments(nodeHandle);
 
-    state_sub = nodeHandle.subscribe<mavros_msgs::State>("mavros/state", 1, &px4_Core::state_cb,this);
+    state_sub = nodeHandle.subscribe("/mavros/state", 1, &px4_Core::state_cb,this);
     if(!state_sub){
         ROS_INFO("Could not subscribe to /mavros/state");
         return false;
     }
 
-    local_position_sub = nodeHandle.subscribe("mavros/local_position/pose", 1, &px4_Core::local_pos_subCallback,this);
+    local_position_sub = nodeHandle.subscribe("/mavros/local_position/pose", 1, &px4_Core::local_pos_subCallback,this);
     if(!local_position_sub){
         ROS_INFO("Could not subscribe to /mavros/local_position/pose");
         return false;     
@@ -103,7 +103,7 @@ bool px4_Core::init(ros::NodeHandle& nodeHandle){
         return false;
     }
 
-    RC_sub = nodeHandle.subscribe("mavros/rc/in", 1, &px4_Core::RC_subCallback,this);
+    RC_sub = nodeHandle.subscribe("/mavros/rc/in", 1, &px4_Core::RC_subCallback,this);
     if(!RC_sub){
         ROS_INFO("Could not subscribe to /mavros/rc/in");
         return false;
@@ -112,11 +112,11 @@ bool px4_Core::init(ros::NodeHandle& nodeHandle){
     cam_sub = nodeHandle.subscribe("/contours_topic", 1, &px4_Core::cam_subCallback,this);
 
 
-    local_pos_pub = nodeHandle.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local", 5);
+    local_pos_pub = nodeHandle.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local", 5);
 
-    arming_client = nodeHandle.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");
-    take_off_client = nodeHandle.serviceClient<mavros_msgs::CommandLong>("mavros/cmd/takeoff");
-    set_mode_client = nodeHandle.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
+    arming_client = nodeHandle.serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
+    take_off_client = nodeHandle.serviceClient<mavros_msgs::CommandLong>("/mavros/cmd/takeoff");
+    set_mode_client = nodeHandle.serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
 
     return true;
 }
@@ -127,25 +127,27 @@ bool px4_Core::arm(){
     ros::Rate rate(loop_rate);
 
     //1.waiting connecting to FCU via USB;
-    while(!current_state.connected){
+    while(ros::ok() && !current_state.connected){
         ros::spinOnce();
         rate.sleep();
+        // printf("connected : %d \n",current_state.connected);
     }
     ROS_INFO("pixhawk has been connected via USB!\n");
-    // waiting for GPS fixed
+    // waiting for GPS fix
     while(ros::ok() && gps_raw_fix.status.status){
         ros::spinOnce();
         rate.sleep();
     }
+    ROS_INFO("The GPS has been fixed! \n");
     //3.switching to offboard mode and try to arm;
     ros::Time last_request = ros::Time::now();
     ros::Time init_start   = ros::Time::now();
-    while(!(offb_flag * armed_flag) && ros::ok() && (ros::Time::now() - init_start < ros::Duration(wait_for_arming_sec))){
+    while(ros::ok() && (ros::Time::now() - init_start < ros::Duration(wait_for_arming_sec))){
         if( current_state.mode != "OFFBOARD" &&
             (ros::Time::now() - last_request > ros::Duration(5.0))){
             if( set_mode_client.call(offb_set_mode) && offb_set_mode.response.mode_sent){
                 ROS_INFO("Offboard enabled");
-                offb_flag = 1;
+                // offb_flag = 1;
             }
             last_request = ros::Time::now();
         } 
@@ -154,7 +156,8 @@ bool px4_Core::arm(){
                 (ros::Time::now() - last_request > ros::Duration(5.0))){
                 if( arming_client.call(arm_cmd) && arm_cmd.response.success){
                     ROS_INFO("Vehicle armed");
-                    armed_flag = 1;
+                    controller_state_ = ControllerState::Armed;
+                    // armed_flag = 1;
                     return true;
                 }
                 last_request = ros::Time::now();
@@ -190,11 +193,11 @@ void px4_Core::spin(){
     while(ros::ok()){
         if(controller_state_ == ControllerState::Takeoff){
         	if(2 - current_pose.pose.position.z > 0.2){ // if the vehicle altitude is higher than 1.8m, then we think it's time to switching to hover mode...
-                //printf("error: %f \n",2 - current_pose.pose.position.z);
-                //printf("pose: %f \n",pose.pose.position.z);
+                printf("error: %f \n",2 - current_pose.pose.position.z);
+                printf("pose: %f \n",pose.pose.position.z);
             }
             else{
-                controller_state_ == ControllerState::Navigating;
+                controller_state_ = ControllerState::Navigating;
                 ROS_INFO("switching to mission mode...");
             }
             local_pos_pub.publish(pose);
@@ -222,6 +225,7 @@ void px4_Core::spin(){
                 pose.pose.position.y = current_pose.pose.position.y +  (-kp * delta_pixels[0]) + rc_d_roll;
                 pose.pose.position.z = current_pose.pose.position.z +  (kp * delta_pixels[1])+ rc_d_thrust;
                 printf("out_flag:  %d \n",camera_data.out_flag);
+                printf("camera_x: %d , camera_y: %d \n",camera_data.x_pos,camera_data.y_pos);
                 printf("error_y: %f , error_z: %f \n",(-kp * delta_pixels[0]) + rc_d_roll , (-kp * delta_pixels[1])+ rc_d_thrust);
             }
             else{
