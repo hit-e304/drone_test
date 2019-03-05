@@ -19,7 +19,7 @@ int main(int argc, char **argv)
         ROS_ERROR("Could not initialize PX4Controller node!");
         return -1;
     }
- 
+
     if(!px4_contrller.arm())
     {
         ROS_ERROR("Could not arm PX4/FCU!");
