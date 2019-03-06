@@ -73,15 +73,15 @@ int main(int argc, char **argv)
         std::cout << "mode : "<< current_state.mode << std::endl;
         // ROS_INFO("The Drone's current pose is :");
         // std::cout << current_pose.pose << std::endl;
-        // ROS_INFO("The Drone's target pose is :");
-        // std::cout << target_pose.pose << std::endl;
+        ROS_INFO("The Drone's target pose is :");
+        std::cout << target_pose.pose << std::endl;
         error_y = target_pose.pose.position.y - current_pose.pose.position.y;
         error_z = target_pose.pose.position.z - current_pose.pose.position.z;
         ROS_INFO("The Drone's y and z error position is :");
         std::cout << "error y : " << error_y << std::endl;
         std::cout << "error z : " << error_z << std::endl;
-        ROS_INFO("The Drone's RCin is :");
-        std::cout << current_RC_in << std::endl;
+        // ROS_INFO("The Drone's RCin is :");
+        // std::cout << current_RC_in << std::endl;
         ROS_INFO("The camera_data is :");
         std::cout << camera_data << std::endl;
         std::cout << "The camera y_ctrl error :" << -kp * camera_data.x_pos << std::endl;
@@ -91,6 +91,7 @@ int main(int argc, char **argv)
 
         ros::spinOnce();
         rate.sleep();
+
     }
     
     
