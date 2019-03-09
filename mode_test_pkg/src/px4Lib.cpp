@@ -72,7 +72,8 @@ void px4_Core::parseArguments(const ros::NodeHandle& nodeHandle){
 
     pose.pose.position.x = 0 ;
     pose.pose.position.y = 0 ;
-    pose.pose.position.z = 2 ;
+    pose.pose.position.z = -1 ;
+
 
     nodeHandle.param("spin_rate", loop_rate, 20.0f);
     ROS_ASSERT(loop_rate > 0);
