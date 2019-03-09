@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(mode_test_pkg)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++11)
+# add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -219,10 +219,9 @@ target_link_libraries(mode_test_pub
 add_executable(position_ctrl_with_rc
   src/position_ctrl_with_rc.cpp
 )
-add_dependencies(position_ctrl_with_rc ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} px4Lib)
+add_dependencies(position_ctrl_with_rc ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(position_ctrl_with_rc
   ${catkin_LIBRARIES}
-  px4Lib
 )
 
 add_executable(drone_state
@@ -230,14 +229,5 @@ add_executable(drone_state
 )
 add_dependencies(drone_state ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(drone_state
-  ${catkin_LIBRARIES}
-)
-
-add_library(px4Lib
-  include/mode_test_pkg/px4Lib.h
-  src/px4Lib.cpp
-)
-add_dependencies(px4Lib ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(px4Lib
   ${catkin_LIBRARIES}
 )

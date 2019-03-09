@@ -116,8 +116,10 @@ public:
         catch (cv_bridge::Exception& e)
         {
             ROS_ERROR("cv_bridge exception: %s", e.what());
+            std::cout<<"fail of "<< t_now << endl;
         return;
         }
+        std::cout<<"successful of "<< t_now << endl;
         // 矩阵访问
         //如果是采用Mat形式存储，想要访问灰度图像的灰度值，可以采用如下方法：
         //int value = img.at<uchar>(i,j)[k];//k表示通道数
@@ -139,9 +141,11 @@ public:
         // white_point.val[1] = 255;
         // white_point.val[2] = 255;
         cv::Mat img = cv_ptr->image;
+        //std::cout<<"size = "<<img.size()<<endl;
+        //imwrite("image.txt",img);
         img_red = Mat::zeros(img.size(),CV_8UC1);
         int h_hsv = 120;
-        int s_hsv = 20;
+        int s_hsv = 130;
         int h_hsv_offset = 15;
 	    cv::GaussianBlur(img,img_gauss,cv::Size(3,3),0);
         cvtColor(img_gauss,img_hsv,CV_RGB2HSV);
@@ -226,14 +230,14 @@ public:
                 info_pub.x_pos = P_center.x - 320;
                 info_pub.y_pos = 240 - P_center.y;
                 //在图像上显示
-                if(out_flag == 0 && (theta < 50 || theta > 130))
+                if(out_flag == 0 && (theta < 20 || theta > 160))
                 {
                     //drawContours(imageContours,contours_ploy,i,Scalar(255),1,8,hierarchy);
                     //drawContours(img,contours_ploy,i,Scalar(0,255,0),3,8,hierarchy);
                     //cv::circle(imageContours, P_center, 5, Scalar(255),2);
                     cv::circle(img, P_center, 5, Scalar(0,255,0),2);
                 }
-                if(out_flag == 1 && (theta < 50 || theta > 130))
+                if(out_flag == 1 && (theta < 20 || theta > 160))
                 {
                     //drawContours(imageContours,contours_ploy,i,Scalar(255),1,8,hierarchy);
                     //drawContours(img,contours_ploy,i,Scalar(255,0,0),3,8,hierarchy);
@@ -293,12 +297,10 @@ public:
         //cv::imshow("OPENCV_WINDOW_color", img);
         t_now = cv::getTickCount();
         t_during = (t_now-t_last)/cv::getTickFrequency();
-        std::cout <<"Time of image = "<< t_during<<endl;
+        //std::cout <<"Time of image = "<< t_during<<endl;
         t_last = t_now;
         cv::waitKey(3);
-
     }
-     
 };
 //调整阈值时使用
 void on_trackbar_add( int, void* )
@@ -317,17 +319,23 @@ void on_trackbar_line( int, void* )
 
 int main(int argc, char** argv)
 {
+float ros_last , ros_now = 0.0;
+ros_last = cv::getTickCount();
 ros::init(argc, argv, "image_converter");
 ImageConverter ic;
-int alpha_slider_line_max = 100;
-int alpha_slider_max = 50;
+//int alpha_slider_line_max = 100;
+//int alpha_slider_max = 50;
 // namedWindow("Linear Offset_add", 1);
 // namedWindow("Linear Offset_sub", 1);
 // namedWindow("Linear Offset_line", 1);
 // createTrackbar( "Trackbar", "Linear Offset_add", &alpha_slider_add, alpha_slider_max, on_trackbar_add );
 // createTrackbar( "Trackbar", "Linear Offset_sub", &alpha_slider_sub, alpha_slider_max, on_trackbar_sub );
 //createTrackbar( "Trackbar", "Linear Offset_line", &alpha_slider_line, alpha_slider_line_max, on_trackbar_line );
+// while(1)
+// {
+    //ros_last = cv::getTickCount();
 ros::spin();
+// }
 return 0;
 }
 
