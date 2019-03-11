@@ -70,9 +70,11 @@ void px4_Core::parseArguments(const ros::NodeHandle& nodeHandle){
     offb_set_mode.request.custom_mode = "OFFBOARD"; // set mdoe
     arm_cmd.request.value = true; // set arm positive
 
+    altitudeCaliZero = 0.0;
+
     pose.pose.position.x = 0 ;
     pose.pose.position.y = 0 ;
-    pose.pose.position.z = -1 ;
+    pose.pose.position.z = altitudeCaliZero;
 
 
     nodeHandle.param("spin_rate", loop_rate, 20.0f);
@@ -187,20 +189,22 @@ void px4_Core::spin(){
     controller_state_ = ControllerState::Takeoff;
 
     while(ros::ok()){
-        if(controller_state_ == ControllerState::Takeoff){
-        	if(-1 - current_pose.pose.position.z > 0.2){ // if the vehicle altitude is higher than 1.8m, then we think it's time to switching to hover mode...
+        // if(controller_state_ == ControllerState::Takeoff){
+        if(current_RC_in.channels.at(5) == 1514){
+        	if(1 + altitudeCaliZero - current_pose.pose.position.z > 0.2){ // if the vehicle altitude is higher than 1.8m, then we think it's time to switching to hover mode...
                 //printf("error: %f \n",2 - current_pose.pose.position.z);
                 //printf("pose: %f \n",pose.pose.position.z);
+                pose.pose.position.z = altitudeCaliZero + 1;
             }
             else{
                 controller_state_ = ControllerState::Navigating;
                 ROS_INFO("switching to mission mode...");
             }
-            local_pos_pub.publish(pose);
         }
-        else if(controller_state_ == ControllerState::Navigating){
+        // else if(controller_state_ == ControllerState::Navigating){
+        else if(current_RC_in.channels.at(5) == 1934){
             // RC compensation 
-            rc_d_roll = float(current_RC_in.channels.at(0)-1513) / (-840) * 5;  //invert with -840
+            rc_d_roll = float(current_RC_in.channels.at(0)-1513) / (840) * 5;  //invert with 840
             rc_d_pitch =  float(current_RC_in.channels.at(1)-1513) / (-840) * 5;
             rc_d_yaw =  float(current_RC_in.channels.at(3)-1514) / (-840) * 5;
             rc_d_thrust = float(current_RC_in.channels.at(2)-1513) / 840 * 5;
@@ -208,7 +212,7 @@ void px4_Core::spin(){
             yaw = Quaternion2Euler(current_pose.pose.orientation).z + rc_d_yaw;
             //printf("tg_yaw : %f \n",yaw * 180 / 3.14159265358979);	
             q.setRPY(roll, pitch, yaw);
-            pose.pose.position.x = current_pose.pose.position.x + rc_d_pitch;
+            pose.pose.position.y = current_pose.pose.position.y + rc_d_pitch;
 
             pose.pose.orientation.x = q[0];
             pose.pose.orientation.y = q[1];
@@ -218,20 +222,24 @@ void px4_Core::spin(){
             if(!camera_data.out_flag){ // if the box is in camera sight
                 delta_pixels[0] = camera_data.x_pos - picture_centerX;
                 delta_pixels[1] = camera_data.y_pos - picture_centerY;
-                pose.pose.position.y = current_pose.pose.position.y +  (-kp * delta_pixels[0]) + rc_d_roll;
-                pose.pose.position.z = current_pose.pose.position.z +  (kp * delta_pixels[1])+ rc_d_thrust;
+                pose.pose.position.x = current_pose.pose.position.x +  (kp * delta_pixels[0]) + rc_d_roll;
+                // pose.pose.position.z = current_pose.pose.position.z +  (kp * delta_pixels[1])+ rc_d_thrust;
+                pose.pose.position.z = current_pose.pose.position.z + rc_d_thrust; // without altitude auto control
                 printf("out_flag:  %d \n",camera_data.out_flag);
                 printf("error_y: %f , error_z: %f \n",(-kp * delta_pixels[0]) + rc_d_roll , (-kp * delta_pixels[1])+ rc_d_thrust);
             }
             else{
-                pose.pose.position.y = current_pose.pose.position.y + rc_d_roll;
+                pose.pose.position.x = current_pose.pose.position.x + rc_d_roll;
                 pose.pose.position.z = current_pose.pose.position.z + rc_d_thrust;
                 ROS_INFO("box is out of sight!");  // if the box is in camera sight
             }
         }
         else{
-            ;
+             altitudeCaliZero = current_pose.pose.position.z;
         }
+
+        pose.pose.position.x >= 10 ? (pose.pose.position.x = 10) : (pose.pose.position.x <= -10 ? pose.pose.position.x = -10 : pose.pose.position.x = pose.pose.position.x); 
+        pose.pose.position.z >= 5 ? pose.pose.position.z = 5 : pose.pose.position.z = pose.pose.position.z;
         
         local_pos_pub.publish(pose);
         ros::spinOnce();

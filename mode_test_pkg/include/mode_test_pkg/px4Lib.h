@@ -36,6 +36,8 @@ private:
     // init status as init_mdoe
     int status;
 
+    float altitudeCaliZero; // altitude zero point calibration
+
     int offb_flag; // if it's offboard mode now, offb_flag = 1
     int armed_flag;// if the vehicle is armed, armed_flag = 1
     int delta_pixels[2]; // delta pixels in X and Z direction
