@@ -73,8 +73,8 @@ int main(int argc, char **argv)
         std::cout << "mode : "<< current_state.mode << std::endl;
         // ROS_INFO("The Drone's current pose is :");
         // std::cout << current_pose.pose << std::endl;
-        // ROS_INFO("The Drone's target pose is :");
-        // std::cout << target_pose.pose << std::endl;
+        ROS_INFO("The Drone's target pose is :");
+        std::cout << target_pose.pose << std::endl;
         error_y = target_pose.pose.position.y - current_pose.pose.position.y;
         error_z = target_pose.pose.position.z - current_pose.pose.position.z;
         ROS_INFO("The Drone's y and z error position is :");
